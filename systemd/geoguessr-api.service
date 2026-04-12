@@ -1,0 +1,15 @@
+[Unit]
+Description=GeoDB FastAPI Backend
+After=network.target
+
+[Service]
+User=nick
+WorkingDirectory=/home/nick/geoguessr-graph/api
+ExecStart=/home/nick/geoguessr-graph/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8421 --workers 1
+Restart=always
+RestartSec=5
+Environment=ADMIN_PASSWORD=changeme
+Environment=DB_PATH=/home/nick/geoguessr-graph/geoguessr.db
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=GeoDB Graph Crawler
+After=network.target geoguessr-api.service
+
+[Service]
+User=nick
+WorkingDirectory=/home/nick/geoguessr-graph
+ExecStart=/home/nick/geoguessr-graph/venv/bin/python -m crawler.crawler
+Restart=on-failure
+RestartSec=30
+Environment=DB_PATH=/home/nick/geoguessr-graph/geoguessr.db
+
+[Install]
+WantedBy=multi-user.target
