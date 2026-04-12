@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from .db import init_db
 from .routes.admin import router as admin_router
@@ -52,6 +54,25 @@ app.include_router(stats_router)
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
+# Internal endpoint for crawler to push node events
+@app.post("/api/internal/new-node")
+async def internal_new_node(payload: dict):
+    await broadcast_new_node(payload.get("node", {}), payload.get("position"))
+    return {"ok": True}
+
+
+# Serve React SPA — must be mounted last so API routes take priority
+DIST_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+
+if os.path.isdir(DIST_DIR):
+    app.mount("/assets", StaticFiles(directory=os.path.join(DIST_DIR, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Serve index.html for all non-API routes (React Router handles them)
+        return FileResponse(os.path.join(DIST_DIR, "index.html"))
 
 
 # WebSocket: graph updates (new nodes from crawler)
@@ -119,10 +140,3 @@ async def broadcast_new_node(node: dict, position: dict | None = None):
         except Exception:
             dead.add(ws)
     _graph_clients.difference_update(dead)
-
-
-# Internal endpoint for crawler to push node events
-@app.post("/api/internal/new-node")
-async def internal_new_node(payload: dict):
-    await broadcast_new_node(payload.get("node", {}), payload.get("position"))
-    return {"ok": True}
