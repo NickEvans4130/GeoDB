@@ -1,0 +1,10 @@
+geoguessr.db
+*.db
+raw_responses/
+venv/
+node_modules/
+frontend/dist/
+.env
+crawler.log
+__pycache__/
+.DS_Store
