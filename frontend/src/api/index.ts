@@ -83,6 +83,7 @@ export interface GraphNode {
   bronze_medals: number
   platinum_medals: number
   crawl_depth: number
+  created_at?: string
 }
 
 export interface Edge { a: string; b: string }
