@@ -60,7 +60,7 @@ export default function Graph() {
   const [searchResults, setSearchResults] = useState<GraphNode[]>([])
   const [overview, setOverview] = useState<{ nodes: number; edges: number } | null>(null)
   const [crawling, setCrawling] = useState(false)
-  const [is3D, setIs3D] = useState(!isMobile())
+  const [is3D] = useState(!isMobile())
 
   // Filters
   const [minRating, setMinRating] = useState(0)
@@ -72,15 +72,8 @@ export default function Graph() {
   const [FGComponent, setFGComponent] = useState<any>(null)
 
   useEffect(() => {
-    // Dynamically import the correct graph component
-    if (is3D) {
-      import('react-force-graph-3d').then(m => setFGComponent(() => m.default))
-    } else {
-      import('react-force-graph-2d' as any).then(m => setFGComponent(() => m.default)).catch(() => {
-        import('react-force-graph-3d').then(m => setFGComponent(() => m.default))
-      })
-    }
-  }, [is3D])
+    import('react-force-graph-3d').then(m => setFGComponent(() => m.default))
+  }, [])
 
   useEffect(() => {
     Promise.all([
