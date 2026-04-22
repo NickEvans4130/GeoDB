@@ -154,6 +154,29 @@ async def db_vacuum(_: dict = Depends(require_admin)):
         await db.close()
 
 
+@router.post("/db/refresh-all-players")
+async def refresh_all_players(_: dict = Depends(require_admin)):
+    db = await get_db()
+    try:
+        now = datetime.now(timezone.utc).isoformat()
+        # Reset every done/failed entry to pending
+        await db.execute(
+            "UPDATE crawl_queue SET status='pending', processed_at=NULL WHERE status IN ('done', 'failed')"
+        )
+        # Insert any players somehow missing from the queue
+        await db.execute(
+            """INSERT OR IGNORE INTO crawl_queue (player_id, depth, status, added_at)
+               SELECT id, crawl_depth, 'pending', ? FROM players""",
+            (now,),
+        )
+        await db.commit()
+        async with db.execute("SELECT COUNT(*) as c FROM crawl_queue WHERE status='pending'") as cur:
+            row = await cur.fetchone()
+        return {"ok": True, "queued": row["c"]}
+    finally:
+        await db.close()
+
+
 @router.post("/db/danger/clear-queue")
 async def clear_queue(_: dict = Depends(require_admin)):
     db = await get_db()

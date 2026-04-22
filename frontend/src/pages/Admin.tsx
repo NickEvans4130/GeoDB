@@ -432,11 +432,20 @@ export default function Admin() {
             </div>
           )) : <Skeleton height={80} style={{ gridColumn: '1 / -1' }} />}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button onClick={async () => { await api.admin.vacuum(); showToast('VACUUM complete') }}
             style={{ padding: '7px 16px', borderRadius: 5, fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-primary)', letterSpacing: '0.08em' }}>
             VACUUM DB
+          </button>
+          <button onClick={async () => {
+            const res = await api.admin.refreshAllPlayers()
+            showToast(res.ok ? `Queued ${res.queued.toLocaleString()} players for re-crawl` : 'Failed', res.ok)
+            refresh()
+          }}
+            style={{ padding: '7px 16px', borderRadius: 5, fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.35)', color: '#818cf8', letterSpacing: '0.08em' }}>
+            FORCE REFRESH ALL ELO
           </button>
         </div>
       </Panel>

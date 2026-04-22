@@ -53,6 +53,7 @@ export const api = {
     sessions: () => apiFetch<CrawlSession[]>('/admin/sessions'),
     dbStats: () => apiFetch<DbStats>('/admin/db/stats'),
     vacuum: () => apiFetch<{ ok: boolean }>('/admin/db/vacuum', { method: 'POST' }),
+    refreshAllPlayers: () => apiFetch<{ ok: boolean; queued: number }>('/admin/db/refresh-all-players', { method: 'POST' }),
     clearQueue: () => apiFetch<{ ok: boolean }>('/admin/db/danger/clear-queue', { method: 'POST' }),
     wipeEloHistory: () => apiFetch<{ ok: boolean }>('/admin/db/danger/wipe-elo-history', { method: 'POST' }),
     fullReset: () => apiFetch<{ ok: boolean }>('/admin/db/danger/full-reset', { method: 'POST' }),
