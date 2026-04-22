@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Graph from './pages/Graph'
 import Stats from './pages/Stats'
 import Admin from './pages/Admin'
+import Player from './pages/Player'
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/" element={<Graph />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/player/:id" element={<Player />} />
         </Routes>
       </div>
     </BrowserRouter>

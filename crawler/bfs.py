@@ -46,6 +46,13 @@ async def crawl_one(
     new_nodes = 0
     new_edges = 0
 
+    # Refresh the player's own stats on every crawl pass
+    self_data = await client.get_user(player_id)
+    if client.cookie_expired:
+        return 0, 0
+    if self_data:
+        await upsert_player(db, self_data, depth)
+
     friends = await client.get_friends(player_id)
     if client.cookie_expired:
         return 0, 0

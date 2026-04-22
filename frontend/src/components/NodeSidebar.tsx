@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api, GraphNode, EloPoint } from '../api'
 import { DivisionBadge } from './DivisionBadge'
 import { Skeleton } from './Skeleton'
@@ -196,7 +197,7 @@ export function NodeSidebar({ nodeId, onClose, onExpandNetwork }: NodeSidebarPro
         )}
 
         {/* Action buttons */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           <button
             onClick={() => nodeId && onExpandNetwork(nodeId)}
             style={{
@@ -208,20 +209,31 @@ export function NodeSidebar({ nodeId, onClose, onExpandNetwork }: NodeSidebarPro
           >
             EXPAND NETWORK
           </button>
-          <a
-            href={`https://www.geoguessr.com/user/${nodeId}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to={`/player/${nodeId}`}
             style={{
               flex: 1, padding: '8px 0', borderRadius: 6, fontSize: 10, fontWeight: 700,
               letterSpacing: '0.08em', textDecoration: 'none', textAlign: 'center',
-              background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)',
-              color: '#818cf8', transition: 'all 200ms ease-out',
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              color: 'var(--text-primary)', transition: 'all 200ms ease-out',
             }}
           >
-            GEOGUESSR ↗
-          </a>
+            VIEW PROFILE
+          </Link>
         </div>
+        <a
+          href={`https://www.geoguessr.com/user/${nodeId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'block', padding: '8px 0', borderRadius: 6, fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.08em', textDecoration: 'none', textAlign: 'center',
+            background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)',
+            color: '#818cf8', transition: 'all 200ms ease-out',
+          }}
+        >
+          GEOGUESSR ↗
+        </a>
       </div>
     </div>
   )

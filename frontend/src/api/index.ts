@@ -84,6 +84,7 @@ export interface GraphNode {
   platinum_medals: number
   crawl_depth: number
   created_at?: string
+  last_seen?: string
 }
 
 export interface Edge { a: string; b: string }

@@ -19,6 +19,7 @@ from crawler.db import (
     mark_done,
     mark_failed,
     next_pending,
+    requeue_stale_players,
     set_meta,
     upsert_player,
 )
@@ -132,8 +133,13 @@ async def run():
             # Get next player from queue
             entry = await next_pending(db)
             if entry is None:
-                logger.info("Queue empty — sleeping 30s")
-                await asyncio.sleep(30)
+                refresh_hours = float(config.get("refresh_interval_hours", "24"))
+                requeued = await requeue_stale_players(db, refresh_hours)
+                if requeued > 0:
+                    logger.info("Queue empty — requeued %d stale players for refresh (threshold: %gh)", requeued, refresh_hours)
+                else:
+                    logger.info("Queue empty — sleeping 30s")
+                    await asyncio.sleep(30)
                 continue
 
             player_id, depth = entry

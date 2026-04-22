@@ -187,6 +187,33 @@ async def mark_failed(db: aiosqlite.Connection, player_id: str):
     await db.commit()
 
 
+async def requeue_stale_players(db: aiosqlite.Connection, hours: float) -> int:
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc).isoformat()
+    threshold = f"-{hours} hours"
+    await db.execute(
+        """UPDATE crawl_queue SET status='pending', processed_at=NULL
+           WHERE status IN ('done', 'failed')
+           AND player_id IN (
+             SELECT id FROM players WHERE last_seen < datetime('now', ?)
+           )""",
+        (threshold,),
+    )
+    await db.execute(
+        """INSERT OR IGNORE INTO crawl_queue (player_id, depth, status, added_at)
+           SELECT id, crawl_depth, 'pending', ?
+           FROM players WHERE last_seen < datetime('now', ?)""",
+        (now, threshold),
+    )
+    await db.commit()
+    async with db.execute(
+        "SELECT COUNT(*) as c FROM crawl_queue WHERE status='pending'"
+    ) as cur:
+        row = await cur.fetchone()
+    return row["c"]
+
+
 async def next_pending(db: aiosqlite.Connection) -> tuple[str, int] | None:
     async with db.execute(
         "SELECT player_id, depth FROM crawl_queue WHERE status='pending' ORDER BY depth ASC, added_at ASC LIMIT 1"

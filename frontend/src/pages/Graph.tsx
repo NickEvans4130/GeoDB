@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api, GraphNode } from '../api'
 import { NodeSidebar } from '../components/NodeSidebar'
 import { divisionColor } from '../components/DivisionBadge'
@@ -44,6 +45,7 @@ function Ticker({ stats, crawling }: { stats: { nodes: number; edges: number } |
 }
 
 export default function Graph() {
+  const navigate = useNavigate()
   const [nodes, setNodes] = useState<GraphNode[]>([])
   // Store edges as a ref so streaming updates don't trigger simulation restarts
   const edgesRef = useRef<{ source: string; target: string }[]>([])
@@ -208,15 +210,22 @@ export default function Graph() {
             }}>
               {searchResults.slice(0, 8).map(r => (
                 <div key={r.id}
-                  onClick={() => { flyToNode(r.id); setSearchVal(''); setSearchResults([]) }}
-                  style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 12,
+                  style={{ padding: '8px 12px', fontSize: 12,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    borderBottom: '1px solid var(--border)', transition: 'background 200ms' }}
+                    borderBottom: '1px solid var(--border)', transition: 'background 200ms',
+                    gap: 8 }}
                   onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <span>{r.nick}</span>
+                  <span
+                    style={{ cursor: 'pointer', flex: 1 }}
+                    onClick={() => { flyToNode(r.id); setSearchVal(''); setSearchResults([]) }}
+                  >{r.nick}</span>
                   <span style={{ color: divisionColor(r.division_type), fontSize: 11 }}>{r.rating}</span>
+                  <span
+                    onClick={() => navigate(`/player/${r.id}`)}
+                    style={{ fontSize: 9, color: '#818cf8', cursor: 'pointer', letterSpacing: '0.06em', flexShrink: 0 }}
+                  >PROFILE</span>
                 </div>
               ))}
             </div>
