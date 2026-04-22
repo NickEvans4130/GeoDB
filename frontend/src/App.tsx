@@ -42,7 +42,7 @@ export default function App() {
           ))}
         </div>
       </nav>
-      <div style={{ paddingTop: 48, height: '100vh' }}>
+      <div style={{ paddingTop: 48, minHeight: 'calc(100vh - 48px)', overflowY: 'auto' }}>
         <Routes>
           <Route path="/" element={<Graph />} />
           <Route path="/stats" element={<Stats />} />
