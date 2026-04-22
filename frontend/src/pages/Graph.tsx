@@ -74,16 +74,22 @@ export default function Graph() {
     import('react-force-graph-3d').then(m => setFGComponent(() => m.default))
   }, [])
 
-  useEffect(() => {
+  const GRAPH_REFRESH_MS = 2 * 60 * 60 * 1000 // 2 hours
+
+  const loadGraph = useCallback((silent = false) => {
+    if (!silent) setLoading(true)
+    setEdgesReady(false)
+    edgesRef.current = []
+    engineStopped.current = false
+
     Promise.all([
       api.graph.nodes({ limit: 5000 }),
       api.stats.overview(),
     ]).then(([ns, ov]) => {
       setNodes(ns)
       setOverview({ nodes: ov.total_players, edges: ov.total_edges })
-    }).finally(() => setLoading(false))
+    }).finally(() => { if (!silent) setLoading(false) })
 
-    // Stream all edges into a ref, then flip edgesReady once — avoids continuous re-renders
     fetch('/api/graph/edges').then(async res => {
       const reader = res.body?.getReader()
       const decoder = new TextDecoder()
@@ -103,25 +109,28 @@ export default function Graph() {
       edgesRef.current = edgeList
       setEdgesReady(true)
     }).catch(() => { setEdgesReady(true) })
+  }, [])
 
-    // WebSocket for live updates
+  useEffect(() => {
+    loadGraph()
+
+    // Periodic silent refresh — updates the graph without interrupting interaction
+    const refreshTimer = setInterval(() => loadGraph(true), GRAPH_REFRESH_MS)
+
+    // WebSocket: crawling indicator only — does NOT push nodes into the graph
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
     const ws = new WebSocket(`${proto}//${location.host}/api/ws/graph-updates`)
     ws.onmessage = e => {
       const msg = JSON.parse(e.data)
-      if (msg.type === 'new_node') {
-        setNodes(prev => prev.find(n => n.id === msg.node.id) ? prev : [...prev, msg.node])
-        setOverview(prev => prev ? { ...prev, nodes: prev.nodes + 1 } : prev)
-        setCrawling(true)
-      }
+      if (msg.type === 'new_node') setCrawling(true)
     }
 
     const pollStatus = setInterval(() => {
       api.admin.status().then(s => setCrawling(s.running && !s.paused)).catch(() => {})
     }, 30000)
 
-    return () => { ws.close(); clearInterval(pollStatus) }
-  }, [])
+    return () => { ws.close(); clearInterval(refreshTimer); clearInterval(pollStatus) }
+  }, [loadGraph])
 
   // graphData only rebuilds when filters or edgesReady changes — not on every streaming chunk
   const graphData = useMemo(() => {
@@ -191,6 +200,17 @@ export default function Graph() {
           {sidebarOpen ? '◂ FILTERS' : '▸ FILTERS'}
         </button>
         <Ticker stats={overview} crawling={crawling} />
+        <button
+          onClick={() => loadGraph()}
+          title="Reload graph data"
+          style={{
+            background: 'none', border: '1px solid var(--border)', borderRadius: 4,
+            color: 'var(--text-secondary)', cursor: 'pointer', padding: '3px 8px',
+            fontSize: 10, fontFamily: 'inherit', letterSpacing: '0.06em',
+          }}
+        >
+          ↺ REFRESH
+        </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
           <input
             value={searchVal}
