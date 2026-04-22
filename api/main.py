@@ -6,11 +6,12 @@ import subprocess
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
+from .auth import verify_ws_token
 from .db import init_db
 from .routes.admin import router as admin_router
 from .routes.graph import router as graph_router
@@ -56,9 +57,12 @@ async def health():
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
-# Internal endpoint for crawler to push node events
+# Internal endpoint for crawler to push node events — localhost only
 @app.post("/api/internal/new-node")
-async def internal_new_node(payload: dict):
+async def internal_new_node(payload: dict, request: Request):
+    client_host = request.client.host if request.client else ""
+    if client_host not in ("127.0.0.1", "::1"):
+        return JSONResponse(status_code=403, content={"detail": "Forbidden"})
     await broadcast_new_node(payload.get("node", {}), payload.get("position"))
     return {"ok": True}
 
@@ -75,7 +79,7 @@ if os.path.isdir(DIST_DIR):
         return FileResponse(os.path.join(DIST_DIR, "index.html"))
 
 
-# WebSocket: graph updates (new nodes from crawler)
+# WebSocket: graph updates — public, no auth needed (only receives new-node events)
 @app.websocket("/api/ws/graph-updates")
 async def ws_graph_updates(ws: WebSocket):
     await ws.accept()
@@ -90,9 +94,14 @@ async def ws_graph_updates(ws: WebSocket):
         _graph_clients.discard(ws)
 
 
-# WebSocket: live log stream for admin panel
+# WebSocket: live log stream — admin only (token required as query param)
 @app.websocket("/api/ws/logs")
-async def ws_logs(ws: WebSocket):
+async def ws_logs(ws: WebSocket, token: str | None = None):
+    try:
+        verify_ws_token(token)
+    except Exception:
+        await ws.close(code=4001)
+        return
     await ws.accept()
     _log_clients.add(ws)
     try:

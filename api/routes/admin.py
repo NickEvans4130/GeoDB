@@ -2,11 +2,11 @@ import asyncio
 import os
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from ..auth import ADMIN_PASSWORD, create_access_token, require_admin
+from ..auth import check_login_rate, create_access_token, require_admin, verify_password
 from ..crawler_control import (
     get_config,
     get_crawler_status,
@@ -37,8 +37,10 @@ class ConfigPatch(BaseModel):
 
 
 @router.post("/login")
-async def login(req: LoginRequest):
-    if req.password != ADMIN_PASSWORD:
+async def login(req: LoginRequest, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    check_login_rate(ip)
+    if not verify_password(req.password):
         raise HTTPException(status_code=401, detail="Invalid password")
     token = create_access_token({"sub": "admin"})
     return {"token": token}

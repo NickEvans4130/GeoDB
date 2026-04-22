@@ -90,7 +90,9 @@ function LiveLog() {
 
   useEffect(() => {
     const connect = () => {
-      const ws = new WebSocket(`ws://${location.host}/api/ws/logs`)
+      const token = localStorage.getItem('geodb_token') ?? ''
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const ws = new WebSocket(`${proto}//${location.host}/api/ws/logs?token=${encodeURIComponent(token)}`)
       wsRef.current = ws
       ws.onopen = () => setConnected(true)
       ws.onclose = () => { setConnected(false); setTimeout(connect, 3000) }

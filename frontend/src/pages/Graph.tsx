@@ -105,7 +105,8 @@ export default function Graph() {
     }).catch(() => { setEdgesReady(true) })
 
     // WebSocket for live updates
-    const ws = new WebSocket(`ws://${location.host}/api/ws/graph-updates`)
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const ws = new WebSocket(`${proto}//${location.host}/api/ws/graph-updates`)
     ws.onmessage = e => {
       const msg = JSON.parse(e.data)
       if (msg.type === 'new_node') {
