@@ -69,40 +69,81 @@ async def get_crawler_status(db: aiosqlite.Connection) -> dict:
     }
 
 
+REPO = "/home/nick/geoguessr-graph"
+
+
 def _get_crawler_pid() -> int | None:
+    # Try systemd first
     try:
         result = subprocess.run(
             ["systemctl", "show", "geoguessr-crawler", "--property=MainPID"],
-            capture_output=True,
-            text=True,
+            capture_output=True, text=True,
         )
         if result.returncode == 0:
-            line = result.stdout.strip()
-            pid = int(line.split("=")[1])
+            pid = int(result.stdout.strip().split("=")[1])
+            if pid > 0:
+                return pid
+    except Exception:
+        pass
+
+    # Fall back to pgrep for nohup-launched processes
+    try:
+        result = subprocess.run(
+            ["pgrep", "-f", "python -m crawler.crawler"],
+            capture_output=True, text=True,
+        )
+        if result.returncode == 0:
+            pid = int(result.stdout.strip().splitlines()[0])
             return pid if pid > 0 else None
     except Exception:
         pass
+
     return None
 
 
 def _systemctl(action: str, service: str) -> bool:
     try:
-        result = subprocess.run(
-            ["systemctl", action, service],
-            capture_output=True,
-        )
+        result = subprocess.run(["systemctl", action, service], capture_output=True)
         return result.returncode == 0
     except Exception:
         return False
 
 
 async def start_crawler() -> bool:
-    return _systemctl("start", "geoguessr-crawler")
+    # Try systemd first
+    if _systemctl("start", "geoguessr-crawler"):
+        return True
+
+    # Fall back to nohup subprocess
+    try:
+        subprocess.Popen(
+            [f"{REPO}/venv/bin/python", "-m", "crawler.crawler"],
+            cwd=REPO,
+            stdout=open(LOG_PATH, "a"),
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        return True
+    except Exception as e:
+        logger.error("Failed to start crawler: %s", e)
+        return False
 
 
 async def stop_crawler(db: aiosqlite.Connection) -> bool:
     await set_config_value(db, "paused", "false")
-    return _systemctl("stop", "geoguessr-crawler")
+
+    # Try systemd first
+    if _systemctl("stop", "geoguessr-crawler"):
+        return True
+
+    # Fall back to killing the nohup process
+    try:
+        result = subprocess.run(
+            ["pkill", "-f", "python -m crawler.crawler"], capture_output=True
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
 
 
 async def pause_crawler(db: aiosqlite.Connection) -> bool:

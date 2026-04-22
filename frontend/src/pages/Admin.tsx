@@ -312,7 +312,11 @@ export default function Admin() {
 
         {/* Controls */}
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={async () => { await api.admin.crawlerStart(); showToast('Crawler started'); refresh() }}
+          <button onClick={async () => {
+            const res = await api.admin.crawlerStart()
+            showToast(res.ok ? 'Crawler started' : 'Failed to start crawler', res.ok)
+            setTimeout(refresh, 2000)
+          }}
             style={{ padding: '8px 18px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)', color: '#10b981', letterSpacing: '0.08em' }}>
             START
