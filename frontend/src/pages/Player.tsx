@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { api, GraphNode, EloPoint } from '../api'
 import { DivisionBadge } from '../components/DivisionBadge'
@@ -24,7 +24,7 @@ function StatCard({ label, value, sub }: { label: string; value: React.ReactNode
   )
 }
 
-function EloChart({ data }: { data: EloPoint[] }) {
+function RatingChart({ data }: { data: EloPoint[] }) {
   if (!data.length) return (
     <div style={{ color: 'var(--text-muted)', fontSize: 12, padding: '24px 0', textAlign: 'center' }}>
       No history recorded yet — will appear after next re-crawl
@@ -32,7 +32,6 @@ function EloChart({ data }: { data: EloPoint[] }) {
   )
   const chartData = [...data].reverse().map(d => ({
     date: new Date(d.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    elo: d.elo,
     rating: d.rating,
   }))
   return (
@@ -45,9 +44,7 @@ function EloChart({ data }: { data: EloPoint[] }) {
           contentStyle={{ background: '#0d0d14', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12 }}
           labelStyle={{ color: '#e8e8f0' }}
         />
-        <Legend wrapperStyle={{ fontSize: 11, color: 'var(--text-secondary)' }} />
         <Line type="monotone" dataKey="rating" stroke="#fbbf24" strokeWidth={2} dot={false} name="Rating" />
-        <Line type="monotone" dataKey="elo" stroke="#6366f1" strokeWidth={2} dot={false} name="ELO" />
       </LineChart>
     </ResponsiveContainer>
   )
@@ -158,7 +155,6 @@ export default function Player() {
               </span>
             : null}
         />
-        <StatCard label="ELO" value={p.elo?.toLocaleString() ?? '—'} />
         <StatCard label="LEVEL" value={p.level} sub={p.xp ? `${p.xp.toLocaleString()} XP` : undefined} />
         <StatCard label="DIVISION" value={DIVISION_NAMES[p.division_type] ?? '—'} />
         {memberSince && <StatCard label="MEMBER SINCE" value={memberSince} />}
@@ -201,12 +197,12 @@ export default function Player() {
         </div>
       )}
 
-      {/* ELO / Rating history chart */}
+      {/* Rating history chart */}
       <div style={{ marginTop: 32, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', color: 'var(--text-secondary)', marginBottom: 16 }}>
-          RATING &amp; ELO HISTORY
+          RATING HISTORY
         </div>
-        <EloChart data={eloHistory} />
+        <RatingChart data={eloHistory} />
       </div>
 
       {/* Friends */}

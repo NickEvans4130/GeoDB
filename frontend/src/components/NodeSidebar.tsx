@@ -12,7 +12,7 @@ interface NodeSidebarProps {
 
 function EloSparkline({ data }: { data: EloPoint[] }) {
   if (!data.length) return null
-  const vals = data.map(d => d.elo).reverse()
+  const vals = data.map(d => d.rating).reverse()
   const min = Math.min(...vals)
   const max = Math.max(...vals)
   const range = max - min || 1
@@ -106,12 +106,11 @@ export function NodeSidebar({ nodeId, onClose, onExpandNetwork }: NodeSidebarPro
       </div>
 
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Rating / ELO */}
+        {/* Rating */}
         {loading ? <Skeleton height={48} /> : p && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
             {[
               { label: 'RATING', value: p.rating, change: ratingChange },
-              { label: 'ELO', value: p.elo, change: null },
             ].map(({ label, value, change }) => (
               <div key={label} style={{
                 background: 'var(--surface)', border: '1px solid var(--border)',
@@ -173,11 +172,11 @@ export function NodeSidebar({ nodeId, onClose, onExpandNetwork }: NodeSidebarPro
           </div>
         )}
 
-        {/* ELO Sparkline */}
+        {/* Rating Sparkline */}
         {eloHistory.length > 0 && (
           <div>
             <div style={{ fontSize: 9, color: 'var(--text-secondary)', letterSpacing: '0.1em', marginBottom: 6 }}>
-              ELO HISTORY
+              RATING HISTORY
             </div>
             <EloSparkline data={eloHistory} />
           </div>

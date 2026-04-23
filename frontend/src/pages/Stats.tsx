@@ -215,7 +215,7 @@ export default function Stats() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ color: 'var(--text-secondary)', fontSize: 10, letterSpacing: '0.1em' }}>
-                {['CLUB', 'MEMBERS', 'AVG RATING', 'AVG ELO', 'AVG LEVEL'].map(h => (
+                {['CLUB', 'MEMBERS', 'AVG RATING', 'AVG LEVEL'].map(h => (
                   <th key={h} style={{ textAlign: 'left', padding: '6px 12px', fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>
@@ -228,7 +228,6 @@ export default function Stats() {
                   <td style={{ padding: '8px 12px', color: '#818cf8', fontWeight: 600 }}>[{c.club_tag}]</td>
                   <td style={{ padding: '8px 12px' }}>{c.member_count}</td>
                   <td style={{ padding: '8px 12px' }}>{Math.round(c.avg_rating || 0)}</td>
-                  <td style={{ padding: '8px 12px' }}>{Math.round(c.avg_elo || 0)}</td>
                   <td style={{ padding: '8px 12px' }}>{Math.round(c.avg_level || 0)}</td>
                 </tr>
               ))}
@@ -243,7 +242,7 @@ export default function Stats() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ color: 'var(--text-secondary)', fontSize: 10, letterSpacing: '0.1em' }}>
-                {['#', 'PLAYER', 'COUNTRY', 'RATING', 'ELO', 'DIVISION', 'LEVEL', 'TYPE'].map(h => (
+                {['#', 'PLAYER', 'COUNTRY', 'RATING', 'DIVISION', 'LEVEL', 'TYPE'].map(h => (
                   <th key={h} style={{ textAlign: 'left', padding: '6px 12px', fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>
@@ -261,7 +260,6 @@ export default function Stats() {
                   <td style={{ padding: '8px 12px', fontWeight: 600 }}>{p.nick}</td>
                   <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>{p.country_code?.toUpperCase()}</td>
                   <td style={{ padding: '8px 12px', color: '#fbbf24', fontWeight: 700 }}>{p.rating}</td>
-                  <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>{p.elo}</td>
                   <td style={{ padding: '8px 12px' }}><DivisionBadge type={p.division_type} small /></td>
                   <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>{p.level}</td>
                   <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: 10 }}>{p.subscription_type}</td>
